@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ -z "$1" ]
+then
+    echo "Please provide a port number"
+    exit 1
+fi
+
+pid=$(lsof -t -i:$1)
+
+if [ -z "$pid" ]
+then
+    echo "No process is using port $1"
+else
+    owner=$(lsof -i:$1 | grep "^COMMAND" -v | awk '{print $3}' | head -n 1)
+
+    if [ "$owner" = "$USER" ]
+    then
+        echo "Process $pid is using port $1"
+        kill -9 $pid
+        echo "Process $pid has been terminated"
+    else
+        echo "Process $pid is using port $1, but it's owned by $owner, not $USER"
+        echo "You don't have permission to kill this process without sudo"
+    fi
+fi
